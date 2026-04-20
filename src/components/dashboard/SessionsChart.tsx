@@ -47,9 +47,9 @@ export function SessionsChart({ data }: SessionsChartProps) {
   const total = data.reduce((sum, item) => sum + item.count, 0);
 
   return (
-    <div className="h-[320px]">
+    <div className="h-[320px] relative">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={formattedData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+        <AreaChart data={formattedData} margin={{ top: 20, right: 30, left: -10, bottom: 0 }}>
           <defs>
             <linearGradient id="colorSessions" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor={COLORS.primary} stopOpacity={0.4}/>
@@ -92,9 +92,9 @@ export function SessionsChart({ data }: SessionsChartProps) {
         </AreaChart>
       </ResponsiveContainer>
       {total > 0 && (
-        <div className="absolute top-6 right-6 text-right">
-          <p className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">{total}</p>
-          <p className="text-xs text-zinc-500">Total</p>
+        <div className="absolute top-0 right-0 text-right z-10 bg-white/90 dark:bg-zinc-900/90 px-4 py-2 rounded-xl">
+          <p className="text-4xl font-bold text-zinc-900 dark:text-zinc-50">{total}</p>
+          <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Total</p>
         </div>
       )}
     </div>
@@ -150,14 +150,9 @@ export function DistributionChart({ data, colors = CHART_COLORS, title }: PieCha
           <Legend 
             verticalAlign="bottom" 
             height={36}
-            formatter={(value, entry: any) => {
-              const data = entry.payload;
-              return (
-                <span className="text-zinc-700 dark:text-zinc-300 text-sm">
-                  {value} <span className="text-zinc-400">({data.percentage}%)</span>
-                </span>
-              );
-            }}
+            formatter={(value) => (
+              <span className="text-zinc-700 dark:text-zinc-300 text-sm font-medium">{value}</span>
+            )}
           />
         </PieChart>
       </ResponsiveContainer>

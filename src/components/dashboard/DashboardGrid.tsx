@@ -112,30 +112,32 @@ export function DashboardGrid({
           <SessionsChart data={sesionesPorDia} />
         </div>
 
-        {/* Device Distribution con gradient */}
-        <div className="bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 rounded-2xl p-6 text-white">
-          <h3 className="text-xl font-bold mb-1">Dispositivos</h3>
-          <p className="text-amber-100 text-sm mb-4">Distribución por tipo</p>
-          
-          <div className="h-[180px]">
-            <DistributionChart 
-              data={distribucionDispositivos.map(d => ({ name: d.dispositivo, value: d.count }))}
-              colors={['#ffffff', '#fef3c7', '#fcd34d']}
-            />
+        {/* Device Distribution - Simple y legible */}
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/50 dark:border-zinc-800/50 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">Dispositivos</h3>
+            <span className="text-xs font-medium text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-full">
+              {totalSesiones} total
+            </span>
           </div>
           
-          <div className="space-y-3 mt-4 pt-4 border-t border-white/20">
-            {distribucionDispositivos.map((d, i) => {
+          {/* Lista simple de dispositivos */}
+          <div className="space-y-3">
+            {distribucionDispositivos.length === 0 ? (
+              <p className="text-zinc-400 text-center py-8">No hay datos</p>
+            ) : distribucionDispositivos.map((d, i) => {
               const pct = calcPercentage(d.count, totalSesiones);
               return (
-                <div key={i} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-white/80"></div>
-                    <span className="text-amber-50 text-sm">{d.dispositivo || 'Unknown'}</span>
+                <div key={i} className="flex items-center justify-between p-3 bg-zinc-100 dark:bg-zinc-800 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full ${
+                      d.dispositivo === 'Desktop' ? 'bg-teal-500' : 'bg-amber-500'
+                    }`}></div>
+                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{d.dispositivo || 'Unknown'}</span>
                   </div>
                   <div className="text-right">
-                    <span className="font-bold text-lg">{d.count}</span>
-                    <span className="text-amber-100 text-sm ml-1">({pct}%)</span>
+                    <span className="text-lg font-bold text-zinc-900 dark:text-zinc-50">{d.count}</span>
+                    <span className="text-zinc-400 text-sm ml-1">({pct}%)</span>
                   </div>
                 </div>
               );
