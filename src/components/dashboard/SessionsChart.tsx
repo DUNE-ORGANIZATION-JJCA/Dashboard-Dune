@@ -16,37 +16,55 @@ import {
   Area 
 } from 'recharts';
 
+// Paleta de colores coherente - Tema Desértico de Dune
+const COLORS = {
+  primary: '#f59e0b',      // Ámbar/Dorado principal
+  secondary: '#d97706',   // Ámbar oscuro
+  accent: '#fbbf24',      // Ámbar claro
+  teal: '#14b8a6',        // Turquesa
+  violet: '#8b5cf6',      // Violeta
+  emerald: '#10b981',    // Esmeralda
+  slate: '#64748b',      // Gris azulado
+  amber: {
+    light: '#fef3c7',
+    DEFAULT: '#f59e0b',
+    dark: '#b45309'
+  }
+};
+
+const CHART_COLORS = [COLORS.primary, COLORS.teal, COLORS.violet, COLORS.emerald, COLORS.slate];
+
 interface SessionsChartProps {
   data: { fecha: string; count: number }[];
 }
 
-const COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#ef4444'];
-
 export function SessionsChart({ data }: SessionsChartProps) {
   const formattedData = data.map(item => ({
     ...item,
-    fecha: new Date(item.fecha).toLocaleDateString('es-ES', { weekday: 'short' })
+    fecha: new Date(item.fecha).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' })
   }));
 
+  const total = data.reduce((sum, item) => sum + item.count, 0);
+
   return (
-    <div className="h-[300px]">
+    <div className="h-[320px]">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={formattedData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
           <defs>
             <linearGradient id="colorSessions" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3}/>
-              <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
+              <stop offset="5%" stopColor={COLORS.primary} stopOpacity={0.4}/>
+              <stop offset="95%" stopColor={COLORS.primary} stopOpacity={0.05}/>
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
           <XAxis 
             dataKey="fecha" 
-            tick={{ fontSize: 12, fill: '#6b7280' }} 
+            tick={{ fontSize: 11, fill: '#6b7280' }} 
             axisLine={{ stroke: '#e5e7eb' }}
             tickLine={false}
           />
           <YAxis 
-            tick={{ fontSize: 12, fill: '#6b7280' }} 
+            tick={{ fontSize: 11, fill: '#6b7280' }} 
             axisLine={false}
             tickLine={false}
           />
@@ -55,22 +73,30 @@ export function SessionsChart({ data }: SessionsChartProps) {
               backgroundColor: 'white',
               border: '1px solid #e5e7eb',
               borderRadius: '12px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              fontSize: '12px'
             }}
+            formatter={(value) => [`${value}`, 'Sesiones']}
           />
           <Area 
             type="monotone"
             dataKey="count" 
-            stroke="#f59e0b" 
+            stroke={COLORS.primary} 
             strokeWidth={3}
             fillOpacity={1}
             fill="url(#colorSessions)" 
             name="Sesiones"
-            dot={{ fill: '#f59e0b', strokeWidth: 2, r: 4 }}
-            activeDot={{ r: 6, strokeWidth: 0 }}
+            dot={{ fill: COLORS.primary, strokeWidth: 2, r: 5, stroke: 'white' }}
+            activeDot={{ r: 7, strokeWidth: 0, fill: COLORS.primary }}
           />
         </AreaChart>
       </ResponsiveContainer>
+      {total > 0 && (
+        <div className="absolute top-6 right-6 text-right">
+          <p className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">{total}</p>
+          <p className="text-xs text-zinc-500">Total</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -81,12 +107,13 @@ interface PieChartProps {
   title?: string;
 }
 
-const DEFAULT_COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#ef4444', '#06b6d4'];
-
-export function DistributionChart({ data, colors = DEFAULT_COLORS, title }: PieChartProps) {
+export function DistributionChart({ data, colors = CHART_COLORS, title }: PieChartProps) {
+  const total = data.reduce((sum, item) => sum + item.value, 0);
+  
   const formattedData = data.map(item => ({
     name: item.name,
-    value: item.value
+    value: item.value,
+    percentage: total > 0 ? ((item.value / total) * 100).toFixed(1) : '0'
   }));
 
   return (
@@ -97,8 +124,8 @@ export function DistributionChart({ data, colors = DEFAULT_COLORS, title }: PieC
             data={formattedData}
             cx="50%"
             cy="50%"
-            innerRadius={60}
-            outerRadius={90}
+            innerRadius={55}
+            outerRadius={85}
             paddingAngle={4}
             dataKey="value"
             strokeWidth={0}
@@ -112,13 +139,25 @@ export function DistributionChart({ data, colors = DEFAULT_COLORS, title }: PieC
               backgroundColor: 'white',
               border: '1px solid #e5e7eb',
               borderRadius: '12px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              fontSize: '12px'
             }}
+            formatter={(value, name, props) => [
+              `${value} (${(props?.payload?.percentage || '0')}%)`, 
+              name
+            ]}
           />
           <Legend 
             verticalAlign="bottom" 
             height={36}
-            formatter={(value) => <span className="text-zinc-600 dark:text-zinc-400 text-sm">{value}</span>}
+            formatter={(value, entry: any) => {
+              const data = entry.payload;
+              return (
+                <span className="text-zinc-700 dark:text-zinc-300 text-sm">
+                  {value} <span className="text-zinc-400">({data.percentage}%)</span>
+                </span>
+              );
+            }}
           />
         </PieChart>
       </ResponsiveContainer>
@@ -131,31 +170,43 @@ interface BarHorizontalProps {
   colors?: string[];
 }
 
-export function CategoryChart({ data, colors = DEFAULT_COLORS }: BarHorizontalProps) {
+export function CategoryChart({ data, colors = CHART_COLORS }: BarHorizontalProps) {
+  const total = data.reduce((sum, item) => sum + item.value, 0);
+  
+  const dataWithPercentage = data.map(item => ({
+    ...item,
+    percentage: total > 0 ? ((item.value / total) * 100).toFixed(1) : '0'
+  }));
+
   return (
-    <div className="h-[250px]">
+    <div className="h-[280px]">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} layout="vertical" margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+        <BarChart data={dataWithPercentage} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" />
-          <XAxis type="number" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
+          <XAxis type="number" tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false} />
           <YAxis 
             type="category" 
             dataKey="name" 
-            tick={{ fontSize: 12, fill: '#6b7280' }} 
+            tick={{ fontSize: 11, fill: '#6b7280' }} 
             axisLine={false}
             tickLine={false}
-            width={80}
+            width={70}
           />
           <Tooltip 
             contentStyle={{
               backgroundColor: 'white',
               border: '1px solid #e5e7eb',
               borderRadius: '12px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              fontSize: '12px'
             }}
+            formatter={(value, name, props) => [
+              `${value} (${(props?.payload?.percentage || '0')}%)`, 
+              'Total'
+            ]}
           />
-          <Bar dataKey="value" radius={[0, 8, 8, 0]}>
-            {data.map((_, index) => (
+          <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={28}>
+            {dataWithPercentage.map((_, index) => (
               <Cell key={`bar-${index}`} fill={colors[index % colors.length]} />
             ))}
           </Bar>
